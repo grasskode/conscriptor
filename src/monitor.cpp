@@ -1,7 +1,8 @@
 /*
- * Does not do much at the moment. Aggregates data from the clouds and publishes to the clients.
- * Need to add more functionality :
- *      # Store the health of the cloud and support query for the same.
+ * The monitor is the health aggregation point for all the clouds in the system. 
+ * It has the following functionalities : 
+ *    # Aggregate data from the clouds and publishes to the clients.
+ *    # TODO Store the health of the cloud and support query for the same.
  */
 
 #include <zmq.hpp>
