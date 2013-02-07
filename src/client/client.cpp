@@ -24,7 +24,7 @@ static const int CLEANUP_INTERVAL = 10;
 
 void list();
 void ping(string address);
-void submit(string address, string workload);
+string submit(string address, string workload);
 
 int main (int argc, char* argv[]) {
   CloudListener listener(CLOUD_BASE, CLEANUP_INTERVAL);

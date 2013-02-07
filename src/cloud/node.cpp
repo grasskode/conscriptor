@@ -29,20 +29,20 @@ static void* broker_speak(void* params) {
   }
 }
 
-static void* broker_listen(void* params) {
+static void broker_listen() {
   zmq::context_t context (1);
-  zmq:: socket_t broker(context, ZMQ_ROUTER);
+  zmq::socket_t broker(context, ZMQ_REP);
   broker.bind(my_address.c_str());
 
   while(1) {
-    string address = s_recv(broker);
+    //string address = s_recv(worker);
     // discard empty delimiter
-    s_recv(broker);
+    //s_recv(worker);
     string req = s_recv(broker);
-    //cout << "router : request recieved : " << req << " from " << address << endl;
+    cout << "router : request recieved : " << req << endl;
 
-    s_sendmore(broker, address);
-    s_sendmore(broker, "");
+    //s_sendmore(broker, address);
+    //s_sendmore(broker, "");
     s_send(broker, req);
   }
 }
@@ -56,14 +56,12 @@ int main(int argc, char* argv[]) {
   name = argv[1];
   cloud = argv[2];
   my_address = "ipc://"+name+".ipc";
-  broker_address = "ipc://"+cloud+".ipc";
+  broker_address = "ipc://"+cloud+"-be.ipc";
 
   pthread_t speakd, listend;
   pthread_create(&speakd, NULL, broker_speak, NULL);
-  pthread_create(&listend, NULL, broker_listen, NULL);
 
-  pthread_join(speakd, NULL);
-  pthread_join(listend, NULL);
+  broker_listen();
 
   exit(0);
 }

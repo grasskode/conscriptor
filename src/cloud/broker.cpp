@@ -103,13 +103,19 @@ static void route_requests() {
 
       zmq::socket_t worker(context, ZMQ_DEALER);
       worker.connect(next.c_str());      
-      s_sendmore(worker, address);
       s_sendmore(worker, "");
       s_send(worker, request);
 
-      zmq::message_t response;
-      worker.recv(&response);
-      client.send(response);
+      cout<<"Sent request. waiting for response."<<endl;
+
+      s_recv(worker);
+      string response = s_recv(worker);
+
+      cout<<"received response. forwarding to client."<<endl;
+
+      s_sendmore(client, address);
+      s_sendmore(client, "");
+      s_send(client, response);
     }
   }
 }
@@ -129,9 +135,6 @@ int main(int argc, char* argv[]){
   pthread_create(&listend, NULL, node_listen, NULL);
 
   route_requests();
-
-  pthread_join(speakd, NULL);
-  pthread_join(listend, NULL);
 
   return 0;
 }
