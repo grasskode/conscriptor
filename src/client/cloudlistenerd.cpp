@@ -48,16 +48,16 @@ class CloudListener {
       string filepath = string(BASE_DIR)+"/"+name+"/";
       struct stat st;
       if(stat(filepath.c_str(), &st) == 0) {
-        if(st.st_mode & S_IFDIR != 0 && S_ISDIR(st.st_mode))
-          cout<<filepath<<" is present as a directory."<<endl;
-        else
+        if(st.st_mode & S_IFDIR != 0 && S_ISDIR(st.st_mode)){
+          //cout<<filepath<<" is present as a directory."<<endl;
+        } else
           cerr<<filepath<<" is present but is not a directory!"<<endl;
       } else {
         int status = mkdir(filepath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
       }
 
       filepath += format(address);
-      cout<<"Creating file at "<<filepath<<endl;
+      //cout<<"Creating file at "<<filepath<<endl;
       FILE* file = fopen(filepath.c_str(), "w");
       if(file == 0) {
         cerr<<"Could not create file!"<<endl;
@@ -105,13 +105,13 @@ class CloudListener {
                 stat(nodepath.c_str(), &st);
                 time_t modified = st.st_mtime;
                 time_t current = time(NULL);
-                cout<<"node "<<dirp->d_name<<"/"<<cloudp->d_name<<" idle for "<<current-modified<<" seconds."<<endl;
+                //cout<<"node "<<dirp->d_name<<"/"<<cloudp->d_name<<" idle for "<<current-modified<<" seconds."<<endl;
                 if(current - modified >= 10) {
                   if( remove(nodepath.c_str()) != 0 ){
                     perror(("Error deleting "+nodepath).c_str());
                   }
                   else{
-                    cout<<"node "<<dirp->d_name<<"/"<<cloudp->d_name<<" removed after inactivity of "<<current-modified<<" seconds."<<endl;
+                    //cout<<"node "<<dirp->d_name<<"/"<<cloudp->d_name<<" removed after inactivity of "<<current-modified<<" seconds."<<endl;
                   }
                 }
               }
@@ -151,7 +151,7 @@ class CloudListener {
               }
               istringstream iss(static_cast<char*>(cloudinfo.data()));
               iss >> filter_ignore >> name >> address;
-              cout<<"cloudlistenerd : "<<name<<" "<<address<<endl;
+              //cout<<"cloudlistenerd : "<<name<<" "<<address<<endl;
               if(listener->update(name, address) < 0)
                 cerr<< "Unable to update cloud info for "<<name<<" "<<address<<endl;
       }

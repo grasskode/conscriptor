@@ -1,10 +1,21 @@
+/*
+ * client.cpp
+ *
+ * Simple client that does the following :
+ *    # Subscribe to the cloud listing
+ *    # list available clouds
+ *    # ping a given address
+ */
+
 #include "cloudlistenerd.cpp"
 #include <dirent.h>
 #include <iostream>
 #include <string>
+#include <sstream>
 #include <stdlib.h>
 #include <pthread.h>
 #include <fstream>
+#include <zhelpers.hpp>
 
 using namespace std;
 
@@ -12,6 +23,8 @@ static const string CLOUD_BASE = "/home/karan/workspace/conscriptor/cloud";
 static const int CLEANUP_INTERVAL = 10;
 
 void list();
+void ping(string address);
+void submit(string address, string workload);
 
 int main (int argc, char* argv[]) {
   CloudListener listener(CLOUD_BASE, CLEANUP_INTERVAL);
@@ -22,18 +35,30 @@ int main (int argc, char* argv[]) {
   while(cont) {
     cout << ">> ";
     cin >> input;
+
     if(strcmp(input.c_str(), "help") == 0) {
       cout<<"Supported commands are :\n\tlist\n\texit"<<endl;
     }
-    else if(strcmp(input.c_str(), "list") == 0 ) {
+    else if(strcmp(input.c_str(), "list") == 0) {
       list();
-    } 
+    }
+    else if(strcmp(input.c_str(), "ping") == 0) {
+      string address;
+      cin>>address;
+      ping(address);
+    }
+    else if(strcmp(input.c_str(), "submit") == 0) {
+      string address, workload;
+      cin>>address>>workload;
+      string result = submit(address, workload);
+      cout<< "submission result : "<<result<<endl;
+    }
     else if(strcmp(input.c_str(), "exit") == 0) {
       listener.terminate();
       cont = false;
     }
     else {
-      cout<< "Invalid input. Use help to get the supported commands.";
+      cout<< "Invalid input. Use help to get the supported commands."<<endl;
     }
   }
 }
@@ -79,3 +104,25 @@ void list() {
     perror(("Could not access cloud information at "+CLOUD_BASE).c_str());
   }
 }
+
+/*
+ * Ping the given address and display the response time
+ * TODO extend to pinging of cloud names as well
+ */
+void ping(string address) {
+  double time = s_clock();
+  string response = submit(address, "ping");
+  cout<<"ping response in "<<(s_clock() - time)<<"ms : "<<response<<endl;
+}
+
+/*
+ * Utility method to submit a workload to an address and get the result
+ */
+string submit(string address, string workload) {
+  zmq::context_t context(1);
+  zmq::socket_t submission(context, ZMQ_REQ);
+  submission.connect(address.c_str());
+  s_send(submission, workload);
+  return s_recv(submission);
+}
+

@@ -1,3 +1,9 @@
+/*
+ * Node that is the end point of all requests in the system.
+ *    # Speaks to the broker about its status
+ *    # Takes requests from broker and returns a result
+ *    # TODO make the node return an immediate job id and return a result asynchronously to the client later
+ */
 #include <zmq.hpp>
 #include <string>
 #include <zhelpers.hpp>
@@ -25,11 +31,19 @@ static void* broker_speak(void* params) {
 
 static void* broker_listen(void* params) {
   zmq::context_t context (1);
-  zmq:: socket_t worker(context, ZMQ_ROUTER);
-  worker.bind(my_address.c_str());
+  zmq:: socket_t broker(context, ZMQ_ROUTER);
+  broker.bind(my_address.c_str());
 
   while(1) {
-    s_dump(worker);
+    string address = s_recv(broker);
+    // discard empty delimiter
+    s_recv(broker);
+    string req = s_recv(broker);
+    //cout << "router : request recieved : " << req << " from " << address << endl;
+
+    s_sendmore(broker, address);
+    s_sendmore(broker, "");
+    s_send(broker, req);
   }
 }
 
@@ -44,14 +58,12 @@ int main(int argc, char* argv[]) {
   my_address = "ipc://"+name+".ipc";
   broker_address = "ipc://"+cloud+".ipc";
 
-  //pthread_t speakd, listend;
-  //pthread_create(&speakd, NULL, broker_speak, NULL);
-  //pthread_create(&listend, NULL, broker_listen, NULL);
+  pthread_t speakd, listend;
+  pthread_create(&speakd, NULL, broker_speak, NULL);
+  pthread_create(&listend, NULL, broker_listen, NULL);
 
-  broker_listen(NULL);
-
-  //pthread_join(speakd, NULL);
-  //pthread_join(listend, NULL);
+  pthread_join(speakd, NULL);
+  pthread_join(listend, NULL);
 
   exit(0);
 }
